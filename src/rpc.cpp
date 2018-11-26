@@ -30,7 +30,7 @@ RPC::RPC(MainWindow* main) {
     // Set up timer to refresh Price
     priceTimer = new QTimer(main);
     QObject::connect(priceTimer, &QTimer::timeout, [=]() {
-        refreshZECPrice();
+        refreshMRCPrice();
     });
     priceTimer->start(Settings::priceRefreshSpeed);  // Every hour
 
@@ -65,11 +65,11 @@ RPC::~RPC() {
     delete conn;
 }
 
-void RPC::setEZcashd(QProcess* p) {
-    ezcashd = p;
+void RPC::setEMoonroomcashd(QProcess* p) {
+    emoonroomcashd = p;
 
-    if (ezcashd && ui->tabWidget->widget(4) == nullptr) {
-        ui->tabWidget->addTab(main->zcashdtab, "zcashd");
+    if (emoonroomcashd && ui->tabWidget->widget(4) == nullptr) {
+        ui->tabWidget->addTab(main->moonroomcashdtab, "moonroomcashd");
     }
 }
 
@@ -81,7 +81,7 @@ void RPC::setConnection(Connection* c) {
 
     ui->statusBar->showMessage("Ready!");
 
-    refreshZECPrice();
+    refreshMRCPrice();
 
     // Force update, because this might be coming from a settings update
     // where we need to immediately refresh
@@ -482,7 +482,7 @@ void RPC::refreshReceivedZTrans(QList<QString> zaddrs) {
     );
 } 
 
-/// This will refresh all the balance data from zcashd
+/// This will refresh all the balance data from moonroomcashd
 void RPC::refresh(bool force) {
     if  (conn == nullptr) 
         return noConnection();
@@ -526,7 +526,7 @@ void RPC::getInfoThenRefresh(bool force) {
         }
 
         // Get network sol/s
-        if (ezcashd) {
+        if (emoonroomcashd) {
             int conns = reply["connections"].get<json::number_integer_t>();
 
             json payload = {
@@ -563,8 +563,8 @@ void RPC::getInfoThenRefresh(bool force) {
             Settings::getInstance()->setSyncing(isSyncing);
             Settings::getInstance()->setBlockNumber(blockNumber);
 
-            // Update zcashd tab if it exists
-            if (ezcashd) {
+            // Update moonroomcashd tab if it exists
+            if (emoonroomcashd) {
                 if (isSyncing) {
                     QString txt = QString::number(blockNumber);
                     if (estimatedheight > 0) {
@@ -589,24 +589,24 @@ void RPC::getInfoThenRefresh(bool force) {
                 ")";
             main->statusLabel->setText(statusText);   
 
-            auto zecPrice = Settings::getUSDFormat(1);
-            QString tooltip = "Connected to zcashd";;
-            if (!zecPrice.isEmpty()) {
-                tooltip = "1 ZEC = " % zecPrice % "\n" % tooltip;
+            auto mrcPrice = Settings::getUSDFormat(1);
+            QString tooltip = "Connected to moonroomcashd";;
+            if (!mrcPrice.isEmpty()) {
+                tooltip = "1 MRC = " % mrcPrice % "\n" % tooltip;
             }
             main->statusLabel->setToolTip(tooltip);
             main->statusIcon->setToolTip(tooltip);
         });
 
     }, [=](QNetworkReply* reply, const json&) {
-        // zcashd has probably disappeared.
+        // moonroomcashd has probably disappeared.
         this->noConnection();
 
         // Prevent multiple dialog boxes, because these are called async
         static bool shown = false;
         if (!shown && prevCallSucceeded) { // show error only first time
             shown = true;
-            QMessageBox::critical(main, "Connection Error", "There was an error connecting to zcashd. The error was: \n\n"
+            QMessageBox::critical(main, "Connection Error", "There was an error connecting to moonroomcashd. The error was: \n\n"
                 + reply->errorString(), QMessageBox::StandardButton::Ok);
             shown = false;
         }
@@ -691,9 +691,9 @@ void RPC::refreshBalances() {
         auto balZ = QString::fromStdString(reply["private"]).toDouble();
         auto tot  = QString::fromStdString(reply["total"]).toDouble();
 
-        ui->balSheilded   ->setText(Settings::getZECDisplayFormat(balZ));
-        ui->balTransparent->setText(Settings::getZECDisplayFormat(balT));
-        ui->balTotal      ->setText(Settings::getZECDisplayFormat(tot));
+        ui->balSheilded   ->setText(Settings::getMRCDisplayFormat(balZ));
+        ui->balTransparent->setText(Settings::getMRCDisplayFormat(balT));
+        ui->balTotal      ->setText(Settings::getMRCDisplayFormat(tot));
 
         ui->balSheilded   ->setToolTip(Settings::getUSDFormat(balZ));
         ui->balTransparent->setToolTip(Settings::getUSDFormat(balT));
@@ -876,8 +876,8 @@ void RPC::watchTxStatus() {
     });
 }
 
-// Get the ZEC->USD price from coinmarketcap using their API
-void RPC::refreshZECPrice() {
+// Get the MRC->USD price from coinmarketcap using their API
+void RPC::refreshMRCPrice() {
     if  (conn == nullptr) 
         return noConnection();
 
@@ -899,7 +899,7 @@ void RPC::refreshZECPrice() {
                 } else {
                     qDebug() << reply->errorString();
                 }
-                Settings::getInstance()->setZECPrice(0);
+                Settings::getInstance()->setMRCPrice(0);
                 return;
             } 
 
@@ -907,15 +907,15 @@ void RPC::refreshZECPrice() {
             
             auto parsed = json::parse(all, nullptr, false);
             if (parsed.is_discarded()) {
-                Settings::getInstance()->setZECPrice(0);
+                Settings::getInstance()->setMRCPrice(0);
                 return;
             }
 
             for (const json& item : parsed.get<json::array_t>()) {
                 if (item["symbol"].get<json::string_t>() == "ZEC") {
                     QString price = QString::fromStdString(item["price_usd"].get<json::string_t>());
-                    qDebug() << "ZEC Price=" << price;
-                    Settings::getInstance()->setZECPrice(price.toDouble());
+                    qDebug() << "MRC Price=" << price;
+                    Settings::getInstance()->setMRCPrice(price.toDouble());
 
                     return;
                 }
@@ -926,14 +926,14 @@ void RPC::refreshZECPrice() {
         }
 
         // If nothing, then set the price to 0;
-        Settings::getInstance()->setZECPrice(0);
+        Settings::getInstance()->setMRCPrice(0);
     });
 }
 
-void RPC::shutdownZcashd() {
-    // Shutdown embedded zcashd if it was started
-    if (ezcashd == nullptr || conn == nullptr) {
-        // No zcashd running internally, just return
+void RPC::shutdownMoonroomcashd() {
+    // Shutdown embedded moonroomcashd if it was started
+    if (emoonroomcashd == nullptr || conn == nullptr) {
+        // No moonroomcashd running internally, just return
         return;
     }
 
@@ -950,8 +950,8 @@ void RPC::shutdownZcashd() {
     Ui_ConnectionDialog connD;
     connD.setupUi(&d);
     connD.topIcon->setBasePixmap(QIcon(":/icons/res/icon.ico").pixmap(256, 256));
-    connD.status->setText("Please wait for zec-qt-wallet to exit");
-    connD.statusDetail->setText("Waiting for zcashd to exit");
+    connD.status->setText("Please wait for mrc-qt-wallet to exit");
+    connD.statusDetail->setText("Waiting for moonroomcashd to exit");
 
     QTimer waiter(main);
 
@@ -961,9 +961,9 @@ void RPC::shutdownZcashd() {
     QObject::connect(&waiter, &QTimer::timeout, [&] () {
         waitCount++;
 
-        if ((ezcashd->atEnd() && ezcashd->processId() == 0) ||
+        if ((emoonroomcashd->atEnd() && emoonroomcashd->processId() == 0) ||
             waitCount > 30 || 
-            conn->config->zcashDaemon)  {   // If zcashd is daemon, then we don't have to do anything else
+            conn->config->moonroomcashDaemon)  {   // If moonroomcashd is daemon, then we don't have to do anything else
             qDebug() << "Ended";
             waiter.stop();
             QTimer::singleShot(1000, [&]() { d.accept(); });
@@ -973,7 +973,7 @@ void RPC::shutdownZcashd() {
     });
     waiter.start(1000);
 
-    // Wait for the zcash process to exit.     
+    // Wait for the moonroomcash process to exit.     
     d.exec(); 
 }
 

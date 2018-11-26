@@ -29,74 +29,74 @@ void ConnectionLoader::loadConnection() {
     d->exec();
 }
 
-void ConnectionLoader::doAutoConnect(bool tryEzcashdStart) {
+void ConnectionLoader::doAutoConnect(bool tryEmoonroomcashdStart) {
     // Priority 1: Ensure all params are present.
     if (!verifyParams()) {
         downloadParams([=]() { this->doAutoConnect(); });
         return;
     }
 
-    // Priority 2: Try to connect to detect zcash.conf and connect to it.
-    auto config = autoDetectZcashConf();
+    // Priority 2: Try to connect to detect moonroomcash.conf and connect to it.
+    auto config = autoDetectMoonroomcashConf();
     main->logger->write("Attempting autoconnect");
 
     if (config.get() != nullptr) {
         auto connection = makeConnection(config);
 
-        refreshZcashdState(connection, [=] () {
-            // Refused connection. So try and start embedded zcashd
+        refreshMoonroomcashdState(connection, [=] () {
+            // Refused connection. So try and start embedded moonroomcashd
             if (Settings::getInstance()->useEmbedded()) {
-                if (tryEzcashdStart) {
-                    this->showInformation("Starting embedded zcashd");
-                    if (this->startEmbeddedZcashd()) {
-                        // Embedded zcashd started up. Wait a second and then refresh the connection
-                        main->logger->write("Embedded zcashd started up, trying autoconnect in 1 sec");
+                if (tryEmoonroomcashdStart) {
+                    this->showInformation("Starting embedded moonroomcashd");
+                    if (this->startEmbeddedMoonroomcashd()) {
+                        // Embedded moonroomcashd started up. Wait a second and then refresh the connection
+                        main->logger->write("Embedded moonroomcashd started up, trying autoconnect in 1 sec");
                         QTimer::singleShot(1000, [=]() { doAutoConnect(); } );
                     } else {
-                        if (config->zcashDaemon) {
-                            // zcashd is configured to run as a daemon, so we must wait for a few seconds
+                        if (config->moonroomcashDaemon) {
+                            // moonroomcashd is configured to run as a daemon, so we must wait for a few seconds
                             // to let it start up. 
-                            main->logger->write("zcashd is daemon=1. Waiting for it to start up");
-                            this->showInformation("zcashd is set to run as daemon", "Waiting for zcashd");
-                            QTimer::singleShot(5000, [=]() { doAutoConnect(/* don't attempt to start ezcashd */ false); });
+                            main->logger->write("moonroomcashd is daemon=1. Waiting for it to start up");
+                            this->showInformation("moonroomcashd is set to run as daemon", "Waiting for moonroomcashd");
+                            QTimer::singleShot(5000, [=]() { doAutoConnect(/* don't attempt to start emoonroomcashd */ false); });
                         } else {
                             // Something is wrong. 
                             // We're going to attempt to connect to the one in the background one last time
                             // and see if that works, else throw an error
-                            main->logger->write("Unknown problem while trying to start zcashd");
-                            QTimer::singleShot(2000, [=]() { doAutoConnect(/* don't attempt to start ezcashd */ false); });
+                            main->logger->write("Unknown problem while trying to start moonroomcashd");
+                            QTimer::singleShot(2000, [=]() { doAutoConnect(/* don't attempt to start emoonroomcashd */ false); });
                         }
                     }
                 } else {
-                    // We tried to start ezcashd previously, and it didn't work. So, show the error. 
-                    main->logger->write("Couldn't start embedded zcashd for unknown reason");
+                    // We tried to start emoonroomcashd previously, and it didn't work. So, show the error. 
+                    main->logger->write("Couldn't start embedded moonroomcashd for unknown reason");
                     QString explanation;
-                    if (config->zcashDaemon) {
-                        explanation = QString() % "You have zcashd set to start as a daemon, which can cause problems "
-                            "with zec-qt-wallet\n\n."
-                            "Please remove the following line from your zcash.conf and restart zec-qt-wallet\n"
+                    if (config->moonroomcashDaemon) {
+                        explanation = QString() % "You have moonroomcashd set to start as a daemon, which can cause problems "
+                            "with mrc-qt-wallet\n\n."
+                            "Please remove the following line from your moonroomcash.conf and restart mrc-qt-wallet\n"
                             "daemon=1";
                     } else {
-                        explanation = QString() % "Couldn't start the embedded zcashd.\n\n" %
-                            "Please try restarting.\n\nIf you previously started zcashd with custom arguments, you might need to reset zcash.conf.\n\n" %
-                            "If all else fails, please run zcashd manually." %
-                            (ezcashd ? "The process returned:\n\n" % ezcashd->errorString() : QString(""));
+                        explanation = QString() % "Couldn't start the embedded moonroomcashd.\n\n" %
+                            "Please try restarting.\n\nIf you previously started moonroomcashd with custom arguments, you might need to reset moonroomcash.conf.\n\n" %
+                            "If all else fails, please run moonroomcashd manually." %
+                            (emoonroomcashd ? "The process returned:\n\n" % emoonroomcashd->errorString() : QString(""));
                     }
                     
                     this->showError(explanation);
                 }                
             } else {
-                // zcash.conf exists, there's no connection, and the user asked us not to start zcashd. Error!
-                main->logger->write("Not using embedded and couldn't connect to zcashd");
-                QString explanation = QString() % "Couldn't connect to zcashd configured in zcash.conf.\n\n" %
-                                      "Not starting embedded zcashd because --no-embedded was passed";
+                // moonroomcash.conf exists, there's no connection, and the user asked us not to start moonroomcashd. Error!
+                main->logger->write("Not using embedded and couldn't connect to moonroomcashd");
+                QString explanation = QString() % "Couldn't connect to moonroomcashd configured in moonroomcash.conf.\n\n" %
+                                      "Not starting embedded moonroomcashd because --no-embedded was passed";
                 this->showError(explanation);
             }
         });
     } else {
         if (Settings::getInstance()->useEmbedded()) {
-            // zcash.conf was not found, so create one
-            createZcashConf();
+            // moonroomcash.conf was not found, so create one
+            createMoonroomcashConf();
         } else {
             // Fall back to manual connect
             doManualConnect();
@@ -122,12 +122,12 @@ QString randomPassword() {
 }
 
 /**
- * This will create a new zcash.conf, download Zcash parameters.
+ * This will create a new moonroomcash.conf, download Moonroomcash parameters.
  */ 
-void ConnectionLoader::createZcashConf() {
-    main->logger->write("createZcashConf");
+void ConnectionLoader::createMoonroomcashConf() {
+    main->logger->write("createMoonroomcashConf");
 
-    auto confLocation = zcashConfWritableLocation();
+    auto confLocation = moonroomcashConfWritableLocation();
     main->logger->write("Creating file " + confLocation);
 
     QFileInfo fi(confLocation);
@@ -135,19 +135,19 @@ void ConnectionLoader::createZcashConf() {
 
     QFile file(confLocation);
     if (!file.open(QIODevice::ReadWrite | QIODevice::Truncate)) {
-        main->logger->write("Could not create zcash.conf, returning");
+        main->logger->write("Could not create moonroomcash.conf, returning");
         return;
     }
         
     QTextStream out(&file); 
     
     out << "server=1\n";
-    out << "addnode=mainnet.z.cash\n";
-    out << "rpcuser=zec-qt-wallet\n";
+    out << "addnode=178.128.104.155\n";
+    out << "rpcuser=mrc-qt-wallet\n";
     out << "rpcpassword=" % randomPassword() << "\n";
     file.close();
 
-    // Now that zcash.conf exists, try to autoconnect again
+    // Now that moonroomcash.conf exists, try to autoconnect again
     this->doAutoConnect();
 }
 
@@ -158,11 +158,10 @@ void ConnectionLoader::downloadParams(std::function<void(void)> cb) {
     downloadQueue = new QQueue<QUrl>();
     client = new QNetworkAccessManager(main);   
     
-    downloadQueue->enqueue(QUrl("https://z.cash/downloads/sapling-output.params"));
-    downloadQueue->enqueue(QUrl("https://z.cash/downloads/sapling-spend.params"));    
+       
     downloadQueue->enqueue(QUrl("https://z.cash/downloads/sprout-proving.key"));
     downloadQueue->enqueue(QUrl("https://z.cash/downloads/sprout-verifying.key"));
-    downloadQueue->enqueue(QUrl("https://z.cash/downloads/sprout-groth16.params"));
+    
 
     doNextDownload(cb);    
 }
@@ -189,7 +188,7 @@ void ConnectionLoader::doNextDownload(std::function<void(void)> cb) {
     int filesRemaining = downloadQueue->size();
 
     QString filename = fnSaveFileName(url);
-    QString paramsDir = zcashParamsDir();
+    QString paramsDir = moonroomcashParamsDir();
 
     if (QFile(QDir(paramsDir).filePath(filename)).exists()) {
         main->logger->write(filename + " already exists, skipping");
@@ -257,19 +256,19 @@ void ConnectionLoader::doNextDownload(std::function<void(void)> cb) {
     });    
 }
 
-bool ConnectionLoader::startEmbeddedZcashd() {
+bool ConnectionLoader::startEmbeddedMoonroomcashd() {
     if (!Settings::getInstance()->useEmbedded()) 
         return false;
     
-    main->logger->write("Trying to start embedded zcashd");
+    main->logger->write("Trying to start embedded moonroomcashd");
 
     // Static because it needs to survive even after this method returns.
     static QString processStdErrOutput;
 
-    if (ezcashd != nullptr) {
-        if (ezcashd->state() == QProcess::NotRunning) {
+    if (emoonroomcashd != nullptr) {
+        if (emoonroomcashd->state() == QProcess::NotRunning) {
             if (!processStdErrOutput.isEmpty()) {
-                QMessageBox::critical(main, "zcashd error", "zcashd said: " + processStdErrOutput, 
+                QMessageBox::critical(main, "moonroomcashd error", "moonroomcashd said: " + processStdErrOutput, 
                                       QMessageBox::Ok);
             }
             return false;
@@ -278,52 +277,52 @@ bool ConnectionLoader::startEmbeddedZcashd() {
         }        
     }
 
-    // Finally, start zcashd    
+    // Finally, start moonroomcashd    
     QDir appPath(QCoreApplication::applicationDirPath());
 #ifdef Q_OS_LINUX
-    auto zcashdProgram = appPath.absoluteFilePath("zqw-zcashd");
-    if (!QFile(zcashdProgram).exists()) {
-        zcashdProgram = appPath.absoluteFilePath("zcashd");
+    auto moonroomcashdProgram = appPath.absoluteFilePath("zqw-moonroomcashd");
+    if (!QFile(moonroomcashdProgram).exists()) {
+        moonroomcashdProgram = appPath.absoluteFilePath("moonroomcashd");
     }
 #elif defined(Q_OS_DARWIN)
-    auto zcashdProgram = appPath.absoluteFilePath("zcashd");
+    auto moonroomcashdProgram = appPath.absoluteFilePath("moonroomcashd");
 #else
-    auto zcashdProgram = appPath.absoluteFilePath("zcashd.exe");
+    auto moonroomcashdProgram = appPath.absoluteFilePath("moonroomcashd.exe");
 #endif
     
-    if (!QFile(zcashdProgram).exists()) {
-        qDebug() << "Can't find zcashd at " << zcashdProgram;
-        main->logger->write("Can't find zcashd at " + zcashdProgram); 
+    if (!QFile(moonroomcashdProgram).exists()) {
+        qDebug() << "Can't find moonroomcashd at " << moonroomcashdProgram;
+        main->logger->write("Can't find moonroomcashd at " + moonroomcashdProgram); 
         return false;
     }
 
-    ezcashd = new QProcess(main);    
-    QObject::connect(ezcashd, &QProcess::started, [=] () {
-        //qDebug() << "zcashd started";
+    emoonroomcashd = new QProcess(main);    
+    QObject::connect(emoonroomcashd, &QProcess::started, [=] () {
+        //qDebug() << "moonroomcashd started";
     });
 
-    QObject::connect(ezcashd, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+    QObject::connect(emoonroomcashd, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
                         [=](int, QProcess::ExitStatus) {
-        //qDebug() << "zcashd finished with code " << exitCode << "," << exitStatus;    
+        //qDebug() << "moonroomcashd finished with code " << exitCode << "," << exitStatus;    
     });
 
-    QObject::connect(ezcashd, &QProcess::errorOccurred, [&] (auto) {
-        //qDebug() << "Couldn't start zcashd: " << error;
+    QObject::connect(emoonroomcashd, &QProcess::errorOccurred, [&] (auto) {
+        //qDebug() << "Couldn't start moonroomcashd: " << error;
     });
 
-    QObject::connect(ezcashd, &QProcess::readyReadStandardError, [=]() {
-        auto output = ezcashd->readAllStandardError();
-       main->logger->write("zcashd stderr:" + output);
+    QObject::connect(emoonroomcashd, &QProcess::readyReadStandardError, [=]() {
+        auto output = emoonroomcashd->readAllStandardError();
+       main->logger->write("moonroomcashd stderr:" + output);
         processStdErrOutput.append(output);
     });
 
 #ifdef Q_OS_LINUX
-    ezcashd->start(zcashdProgram);
+    emoonroomcashd->start(moonroomcashdProgram);
 #elif defined(Q_OS_DARWIN)
-    ezcashd->start(zcashdProgram);
+    emoonroomcashd->start(moonroomcashdProgram);
 #else
-    ezcashd->setWorkingDirectory(appPath.absolutePath());
-    ezcashd->start("zcashd.exe");
+    emoonroomcashd->setWorkingDirectory(appPath.absolutePath());
+    emoonroomcashd->start("moonroomcashd.exe");
 #endif // Q_OS_LINUX
 
 
@@ -346,9 +345,9 @@ void ConnectionLoader::doManualConnect() {
     }
 
     auto connection = makeConnection(config);
-    refreshZcashdState(connection, [=] () {
+    refreshMoonroomcashdState(connection, [=] () {
         QString explanation = QString()
-                % "Could not connect to zcashd configured in settings.\n\n" 
+                % "Could not connect to moonroomcashd configured in settings.\n\n" 
                 % "Please set the host/port and user/password in the Edit->Settings menu.";
 
         showError(explanation);
@@ -359,7 +358,7 @@ void ConnectionLoader::doManualConnect() {
 }
 
 void ConnectionLoader::doRPCSetConnection(Connection* conn) {
-    rpc->setEZcashd(ezcashd);
+    rpc->setEMoonroomcashd(emoonroomcashd);
     rpc->setConnection(conn);
     
     d->accept();
@@ -386,7 +385,7 @@ Connection* ConnectionLoader::makeConnection(std::shared_ptr<ConnectionConfig> c
     return new Connection(main, client, request, config);
 }
 
-void ConnectionLoader::refreshZcashdState(Connection* connection, std::function<void(void)> refused) {
+void ConnectionLoader::refreshMoonroomcashdState(Connection* connection, std::function<void(void)> refused) {
     json payload = {
         {"jsonrpc", "1.0"},
         {"id", "someid"},
@@ -409,7 +408,7 @@ void ConnectionLoader::refreshZcashdState(Connection* connection, std::function<
                 main->logger->write("Authentication failed");
                 QString explanation = QString() 
                         % "Authentication failed. The username / password you specified was "
-                        % "not accepted by zcashd. Try changing it in the Edit->Settings menu";
+                        % "not accepted by moonroomcashd. Try changing it in the Edit->Settings menu";
 
                 this->showError(explanation);
             } else if (err == QNetworkReply::NetworkError::InternalServerError && 
@@ -423,10 +422,10 @@ void ConnectionLoader::refreshZcashdState(Connection* connection, std::function<
                     if (dots > 3)
                         dots = 0;
                 }
-                this->showInformation("Your zcashd is starting up. Please wait.", status);
-                main->logger->write("Waiting for zcashd to come online.");
+                this->showInformation("Your moonroomcashd is starting up. Please wait.", status);
+                main->logger->write("Waiting for moonroomcashd to come online.");
                 // Refresh after one second
-                QTimer::singleShot(1000, [=]() { this->refreshZcashdState(connection, refused); });
+                QTimer::singleShot(1000, [=]() { this->refreshMoonroomcashdState(connection, refused); });
             }
         }
     );
@@ -441,40 +440,40 @@ void ConnectionLoader::showInformation(QString info, QString detail) {
  * Show error will close the loading dialog and show an error. 
 */
 void ConnectionLoader::showError(QString explanation) {    
-    rpc->setEZcashd(nullptr);
+    rpc->setEMoonroomcashd(nullptr);
     rpc->noConnection();
 
     QMessageBox::critical(main, "Connection Error", explanation, QMessageBox::Ok);
     d->close();
 }
 
-QString ConnectionLoader::locateZcashConfFile() {
+QString ConnectionLoader::locateMoonroomcashConfFile() {
 #ifdef Q_OS_LINUX
-    auto confLocation = QStandardPaths::locate(QStandardPaths::HomeLocation, ".zcash/zcash.conf");
+    auto confLocation = QStandardPaths::locate(QStandardPaths::HomeLocation, ".moonroomcash/moonroomcash.conf");
 #elif defined(Q_OS_DARWIN)
-    auto confLocation = QStandardPaths::locate(QStandardPaths::HomeLocation, "Library/Application Support/Zcash/zcash.conf");
+    auto confLocation = QStandardPaths::locate(QStandardPaths::HomeLocation, "Library/Application Support/Moonroomcash/moonroomcash.conf");
 #else
-    auto confLocation = QStandardPaths::locate(QStandardPaths::AppDataLocation, "../../Zcash/zcash.conf");
+    auto confLocation = QStandardPaths::locate(QStandardPaths::AppDataLocation, "../../moonroomcash/moonroomcash.conf");
 #endif
 
-    main->logger->write("Found zcashconf at " + QDir::cleanPath(confLocation));
+    main->logger->write("Found moonroomcashconf at " + QDir::cleanPath(confLocation));
     return QDir::cleanPath(confLocation);
 }
 
-QString ConnectionLoader::zcashConfWritableLocation() {
+QString ConnectionLoader::moonroomcashConfWritableLocation() {
 #ifdef Q_OS_LINUX
-    auto confLocation = QDir(QStandardPaths::writableLocation(QStandardPaths::HomeLocation)).filePath(".zcash/zcash.conf");
+    auto confLocation = QDir(QStandardPaths::writableLocation(QStandardPaths::HomeLocation)).filePath(".moonroomcash/moonroomcash.conf");
 #elif defined(Q_OS_DARWIN)
-    auto confLocation = QDir(QStandardPaths::writableLocation(QStandardPaths::HomeLocation)).filePath("Library/Application Support/Zcash/zcash.conf");
+    auto confLocation = QDir(QStandardPaths::writableLocation(QStandardPaths::HomeLocation)).filePath("Library/Application Support/Moonroomcash/moonroomcash.conf");
 #else
-    auto confLocation = QDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)).filePath("../../Zcash/zcash.conf");
+    auto confLocation = QDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)).filePath("../../Moonroomcash/moonroomcash.conf");
 #endif
 
-    main->logger->write("Found zcashconf at " + QDir::cleanPath(confLocation));
+    main->logger->write("Found moonroomcashconf at " + QDir::cleanPath(confLocation));
     return QDir::cleanPath(confLocation);
 }
 
-QString ConnectionLoader::zcashParamsDir() {
+QString ConnectionLoader::moonroomcashParamsDir() {
     #ifdef Q_OS_LINUX
     auto paramsLocation = QDir(QDir(QStandardPaths::writableLocation(QStandardPaths::HomeLocation)).filePath(".zcash-params"));
 #elif defined(Q_OS_DARWIN)
@@ -493,25 +492,22 @@ QString ConnectionLoader::zcashParamsDir() {
 }
 
 bool ConnectionLoader::verifyParams() {
-    QDir paramsDir(zcashParamsDir());
+    QDir paramsDir(moonroomcashParamsDir());
 
-    if (!QFile(paramsDir.filePath("sapling-output.params")).exists()) return false;
-    if (!QFile(paramsDir.filePath("sapling-spend.params")).exists()) return false;
     if (!QFile(paramsDir.filePath("sprout-proving.key")).exists()) return false;
     if (!QFile(paramsDir.filePath("sprout-verifying.key")).exists()) return false;
-    if (!QFile(paramsDir.filePath("sprout-groth16.params")).exists()) return false;
-
+    
     return true;
 }
 
 /**
- * Try to automatically detect a zcash.conf file in the correct location and load parameters
+ * Try to automatically detect a moonroomcash.conf file in the correct location and load parameters
  */ 
-std::shared_ptr<ConnectionConfig> ConnectionLoader::autoDetectZcashConf() {    
-    auto confLocation = locateZcashConfFile();
+std::shared_ptr<ConnectionConfig> ConnectionLoader::autoDetectMoonroomcashConf() {    
+    auto confLocation = locateMoonroomcashConfFile();
 
     if (confLocation.isNull()) {
-        // No Zcash file, just return with nothing
+        // No Moonroomcash file, just return with nothing
         return nullptr;
     }
 
@@ -523,14 +519,14 @@ std::shared_ptr<ConnectionConfig> ConnectionLoader::autoDetectZcashConf() {
 
     QTextStream in(&file);
 
-    auto zcashconf = new ConnectionConfig();
-    zcashconf->host     = "127.0.0.1";
-    zcashconf->connType = ConnectionType::DetectedConfExternalZcashD;
-    zcashconf->usingZcashConf = true;
-    zcashconf->zcashDir = QFileInfo(confLocation).absoluteDir().absolutePath();
-    zcashconf->zcashDaemon = false;
+    auto moonroomcashconf = new ConnectionConfig();
+    moonroomcashconf->host     = "127.0.0.1";
+    moonroomcashconf->connType = ConnectionType::DetectedConfExternalMoonroomcashD;
+    moonroomcashconf->usingMoonroomcashConf = true;
+    moonroomcashconf->moonroomcashDir = QFileInfo(confLocation).absoluteDir().absolutePath();
+    moonroomcashconf->moonroomcashDaemon = false;
 
-    Settings::getInstance()->setUsingZcashConf(confLocation);
+    Settings::getInstance()->setUsingMoonroomcashConf(confLocation);
 
     while (!in.atEnd()) {
         QString line = in.readLine();
@@ -539,35 +535,35 @@ std::shared_ptr<ConnectionConfig> ConnectionLoader::autoDetectZcashConf() {
         QString value = line.right(line.length() - s - 1).trimmed();
 
         if (name == "rpcuser") {
-            zcashconf->rpcuser = value;
+            moonroomcashconf->rpcuser = value;
         }
         if (name == "rpcpassword") {
-            zcashconf->rpcpassword = value;
+            moonroomcashconf->rpcpassword = value;
         }
         if (name == "rpcport") {
-            zcashconf->port = value;
+            moonroomcashconf->port = value;
         }
         if (name == "daemon" && value == "1") {
-            zcashconf->zcashDaemon = true;
+            moonroomcashconf->moonroomcashDaemon = true;
         }
         if (name == "testnet" &&
             value == "1"  &&
-            zcashconf->port.isEmpty()) {
-                zcashconf->port = "18232";
+            moonroomcashconf->port.isEmpty()) {
+                moonroomcashconf->port = "26224";
         }
     }
 
     // If rpcport is not in the file, and it was not set by the testnet=1 flag, then go to default
-    if (zcashconf->port.isEmpty()) zcashconf->port = "8232";
+    if (moonroomcashconf->port.isEmpty()) moonroomcashconf->port = "16224";
     file.close();
 
-    // In addition to the zcash.conf file, also double check the params. 
+    // In addition to the moonroomcash.conf file, also double check the params. 
 
-    return std::shared_ptr<ConnectionConfig>(zcashconf);
+    return std::shared_ptr<ConnectionConfig>(moonroomcashconf);
 }
 
 /**
- * Load connection settings from the UI, which indicates an unknown, external zcashd
+ * Load connection settings from the UI, which indicates an unknown, external moonroomcashd
  */ 
 std::shared_ptr<ConnectionConfig> ConnectionLoader::loadFromSettings() {
     // Load from the QT Settings. 
@@ -581,7 +577,7 @@ std::shared_ptr<ConnectionConfig> ConnectionLoader::loadFromSettings() {
     if (username.isEmpty() || password.isEmpty())
         return nullptr;
 
-    auto uiConfig = new ConnectionConfig{ host, port, username, password, false, false, "",  ConnectionType::UISettingsZCashD};
+    auto uiConfig = new ConnectionConfig{ host, port, username, password, false, false, "",  ConnectionType::UISettingsMoonroomCashD};
 
     return std::shared_ptr<ConnectionConfig>(uiConfig);
 }

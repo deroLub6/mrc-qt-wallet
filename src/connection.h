@@ -10,9 +10,9 @@ using json = nlohmann::json;
 class RPC;
 
 enum ConnectionType {
-    DetectedConfExternalZcashD = 1,
-    UISettingsZCashD,
-    InternalZcashD
+    DetectedConfExternalMoonroomcashD = 1,
+    UISettingsMoonroomCashD,
+    InternalMooonroomcashD
 };
 
 struct ConnectionConfig {
@@ -20,9 +20,9 @@ struct ConnectionConfig {
     QString port;
     QString rpcuser;
     QString rpcpassword;
-    bool    usingZcashConf;
-    bool    zcashDaemon;
-    QString zcashDir;
+    bool    usingMoonroomcashConf;
+    bool    moonroomcashDaemon;
+    QString moonroomcashDir;
 
     ConnectionType connType;
 };
@@ -38,32 +38,32 @@ public:
     void loadConnection();
 
 private:
-    std::shared_ptr<ConnectionConfig> autoDetectZcashConf();
+    std::shared_ptr<ConnectionConfig> autoDetectMoonroomcashConf();
     std::shared_ptr<ConnectionConfig> loadFromSettings();
 
     Connection* makeConnection(std::shared_ptr<ConnectionConfig> config);
 
-    void doAutoConnect(bool tryEzcashdStart = true);
+    void doAutoConnect(bool tryEmoonroomcashdStart = true);
     void doManualConnect();
 
-    void createZcashConf();
-    QString locateZcashConfFile();
-    QString zcashConfWritableLocation();
-    QString zcashParamsDir();
+    void createMoonroomcashConf();
+    QString locateMoonroomcashConfFile();
+    QString moonroomcashConfWritableLocation();
+    QString moonroomcashParamsDir();
 
     bool verifyParams();
     void downloadParams(std::function<void(void)> cb);
     void doNextDownload(std::function<void(void)> cb);
-    bool startEmbeddedZcashd();
+    bool startEmbeddedMoonroomcashd();
 
-    void refreshZcashdState(Connection* connection, std::function<void(void)> refused);
+    void refreshMoonroomcashdState(Connection* connection, std::function<void(void)> refused);
 
     void showError(QString explanation);
     void showInformation(QString info, QString detail = "");
 
     void doRPCSetConnection(Connection* conn);
 
-    QProcess*               ezcashd  = nullptr;
+    QProcess*               emoonroomcashd  = nullptr;
 
     QDialog*                d;
     Ui_ConnectionDialog*    connD;
@@ -80,7 +80,7 @@ private:
 };
 
 /**
- * Represents a connection to a zcashd. It may even start a new zcashd if needed.
+ * Represents a connection to a moonroomcashd. It may even start a new moonroomcashd if needed.
  * This is also a UI class, so it may show a dialog waiting for the connection.
 */
 class Connection {

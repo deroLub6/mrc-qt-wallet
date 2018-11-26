@@ -8,42 +8,42 @@ if [ -z $APP_VERSION ]; then echo "APP_VERSION is not set"; exit 1; fi
 if [ -z $PREV_VERSION ]; then echo "PREV_VERSION is not set"; exit 1; fi
 
 if [ -z $ZCASH_DIR ]; then
-    echo "ZCASH_DIR is not set. Please set it to the base directory of a Zcash project with built Zcash binaries."
+    echo "ZCASH_DIR is not set. Please set it to the base directory of a Moonroomcash project with built Moonroomcash binaries."
     exit 1;
 fi
 
-if [ ! -f $ZCASH_DIR/artifacts/zcashd ]; then
-    echo "Couldn't find zcashd in $ZCASH_DIR/artifacts/. Please build zcashd."
+if [ ! -f $ZCASH_DIR/artifacts/moonroomcashd ]; then
+    echo "Couldn't find moonroomcashd in $ZCASH_DIR/artifacts/. Please build moonroomcashd."
     exit 1;
 fi
 
-if [ ! -f $ZCASH_DIR/artifacts/zcash-cli ]; then
-    echo "Couldn't find zcash-cli in $ZCASH_DIR/artifacts/. Please build zcashd."
+if [ ! -f $ZCASH_DIR/artifacts/moonroomcash-cli ]; then
+    echo "Couldn't find moonroomcash-cli in $ZCASH_DIR/artifacts/. Please build moonroomcashd."
     exit 1;
 fi
 
-# Ensure that zcashd is the right build
-echo -n "zcashd version........."
-if grep -q "zqwMagicBean" $ZCASH_DIR/artifacts/zcashd && ! readelf -s $ZCASH_DIR/artifacts/zcashd | grep -q "GLIBC_2\.25"; then 
+# Ensure that moonroomcashd is the right build
+echo -n "moonroomcashd version........."
+if grep -q "MagicBean" $ZCASH_DIR/artifacts/moonroomcashd && ! readelf -s $ZCASH_DIR/artifacts/moonroomcashd | grep -q "GLIBC_2\.25"; then 
     echo "[OK]"
 else
     echo "[ERROR]"
-    echo "zcashd doesn't seem to be a zqwMagicBean build or zcashd is built with libc 2.25"
+    echo "moonroomcashd doesn't seem to be a MagicBean build or moonroomcashd is built with libc 2.25"
     exit 1
 fi
 
-echo -n "zcashd.exe version....."
-if grep -q "zqwMagicBean" $ZCASH_DIR/artifacts/zcashd.exe; then 
+echo -n "moonroomcashd.exe version....."
+if grep -q "MagicBean" $ZCASH_DIR/artifacts/moonroomcashd.exe; then 
     echo "[OK]"
 else
     echo "[ERROR]"
-    echo "zcashd doesn't seem to be a zqwMagicBean build"
+    echo "moonroomcashd doesn't seem to be a MagicBean build"
     exit 1
 fi
 
 echo -n "Version files.........."
 # Replace the version number in the .pro file so it gets picked up everywhere
-sed -i "s/${PREV_VERSION}/${APP_VERSION}/g" zec-qt-wallet.pro > /dev/null
+sed -i "s/${PREV_VERSION}/${APP_VERSION}/g" mrc-qt-wallet.pro > /dev/null
 
 # Also update it in the README.md
 sed -i "s/${PREV_VERSION}/${APP_VERSION}/g" README.md > /dev/null
@@ -59,13 +59,13 @@ echo ""
 echo "[Building on" `lsb_release -r`"]"
 
 echo -n "Configuring............"
-$QT_STATIC/bin/qmake zec-qt-wallet.pro -spec linux-clang CONFIG+=release > /dev/null
+$QT_STATIC/bin/qmake mrc-qt-wallet.pro -spec linux-clang CONFIG+=release > /dev/null
 #Mingw seems to have trouble with precompiled headers, so strip that option from the .pro file
 echo "[OK]"
 
 
 echo -n "Building..............."
-rm -rf bin/zec-qt-wallet* > /dev/null
+rm -rf bin/mrc-qt-wallet* > /dev/null
 make -j$(nproc) > /dev/null
 echo "[OK]"
 
@@ -81,23 +81,23 @@ echo "[OK]"
 
 echo -n "Packaging.............."
 mkdir bin/zec-qt-wallet-v$APP_VERSION > /dev/null
-strip zec-qt-wallet
-cp zec-qt-wallet bin/zec-qt-wallet-v$APP_VERSION > /dev/null
-cp $ZCASH_DIR/artifacts/zcashd bin/zec-qt-wallet-v$APP_VERSION > /dev/null
-cp $ZCASH_DIR/artifacts/zcash-cli bin/zec-qt-wallet-v$APP_VERSION > /dev/null
-cp README.md bin/zec-qt-wallet-v$APP_VERSION > /dev/null
+strip mrc-qt-wallet
+cp mrc-qt-wallet bin/zec-qt-wallet-v$APP_VERSION > /dev/null
+cp $ZCASH_DIR/artifacts/moonroomcashd bin/zec-qt-wallet-v$APP_VERSION > /dev/null
+cp $ZCASH_DIR/artifacts/moonroomcash-cli bin/zec-qt-wallet-v$APP_VERSION > /dev/null
+cp README.md bin/mrc-qt-wallet-v$APP_VERSION > /dev/null
 cp LICENSE bin/zec-qt-wallet-v$APP_VERSION > /dev/null
-cd bin && tar cvf linux-zec-qt-wallet-v$APP_VERSION.tar.gz zec-qt-wallet-v$APP_VERSION/ > /dev/null
+cd bin && tar cvf linux-mrc-qt-wallet-v$APP_VERSION.tar.gz mrc-qt-wallet-v$APP_VERSION/ > /dev/null
 cd .. 
 mkdir artifacts >/dev/null 2>&1
-cp bin/linux-zec-qt-wallet-v$APP_VERSION.tar.gz ./artifacts
+cp bin/linux-mrc-qt-wallet-v$APP_VERSION.tar.gz ./artifacts
 echo "[OK]"
 
 
-if [ -f artifacts/linux-zec-qt-wallet-v$APP_VERSION.tar.gz ] ; then
+if [ -f artifacts/linux-mrc-qt-wallet-v$APP_VERSION.tar.gz ] ; then
     echo -n "Package contents......."
     # Test if the package is built OK
-    if tar tf "artifacts/linux-zec-qt-wallet-v$APP_VERSION.tar.gz" | wc -l | grep -q "6"; then 
+    if tar tf "artifacts/linux-mrc-qt-wallet-v$APP_VERSION.tar.gz" | wc -l | grep -q "6"; then 
         echo "[OK]"
     else
         echo "[ERROR]"
@@ -109,21 +109,21 @@ else
 fi
 
 echo -n "Building deb..........."
-debdir=bin/deb/zec-qt-wallet-v$APP_VERSION
+debdir=bin/deb/mrc-qt-wallet-v$APP_VERSION
 mkdir -p $debdir > /dev/null
 mkdir $debdir/DEBIAN
 mkdir -p $debdir/usr/local/bin
 
 cat src/scripts/control | sed "s/RELEASE_VERSION/$APP_VERSION/g" > $debdir/DEBIAN/control
 
-cp zec-qt-wallet $debdir/usr/local/bin/
-cp $ZCASH_DIR/artifacts/zcashd $debdir/usr/local/bin/zqw-zcashd
+cp mrc-qt-wallet $debdir/usr/local/bin/
+cp $ZCASH_DIR/artifacts/moonroomcashd $debdir/usr/local/bin/zqw-zcashd
 
 mkdir -p $debdir/usr/share/pixmaps/
-cp res/zec-qt-wallet.xpm $debdir/usr/share/pixmaps/
+cp res/mrc-qt-wallet.xpm $debdir/usr/share/pixmaps/
 
 mkdir -p $debdir/usr/share/applications
-cp src/scripts/desktopentry $debdir/usr/share/applications/zec-qt-wallet.desktop
+cp src/scripts/desktopentry $debdir/usr/share/applications/mrc-qt-wallet.desktop
 
 dpkg-deb --build $debdir >/dev/null
 cp $debdir.deb artifacts/
@@ -140,14 +140,14 @@ if [ -z $MXE_PATH ]; then
     exit 0; 
 fi
 
-if [ ! -f $ZCASH_DIR/artifacts/zcashd.exe ]; then
-    echo "Couldn't find zcashd.exe in $ZCASH_DIR/artifacts/. Please build zcashd.exe"
+if [ ! -f $ZCASH_DIR/artifacts/moonroomcashd.exe ]; then
+    echo "Couldn't find moonroomcashd.exe in $ZCASH_DIR/artifacts/. Please build moonroomcashd.exe"
     exit 1;
 fi
 
 
-if [ ! -f $ZCASH_DIR/artifacts/zcash-cli.exe ]; then
-    echo "Couldn't find zcash-cli.exe in $ZCASH_DIR/artifacts/. Please build zcashd.exe"
+if [ ! -f $ZCASH_DIR/artifacts/moonroomcash-cli.exe ]; then
+    echo "Couldn't find moonroomcash-cli.exe in $ZCASH_DIR/artifacts/. Please build moonroomcashd.exe"
     exit 1;
 fi
 
@@ -155,35 +155,35 @@ export PATH=$MXE_PATH:$PATH
 
 echo -n "Configuring............"
 make clean  > /dev/null
-rm -f zec-qt-wallet-mingw.pro
+rm -f mrc-qt-wallet-mingw.pro
 rm -rf release/
 #Mingw seems to have trouble with precompiled headers, so strip that option from the .pro file
-cat zec-qt-wallet.pro | sed "s/precompile_header/release/g" | sed "s/PRECOMPILED_HEADER.*//g" > zec-qt-wallet-mingw.pro
+cat mrc-qt-wallet.pro | sed "s/precompile_header/release/g" | sed "s/PRECOMPILED_HEADER.*//g" > mrc-qt-wallet-mingw.pro
 echo "[OK]"
 
 
 echo -n "Building..............."
-x86_64-w64-mingw32.static-qmake-qt5 zec-qt-wallet-mingw.pro CONFIG+=release > /dev/null
+x86_64-w64-mingw32.static-qmake-qt5 mrc-qt-wallet-mingw.pro CONFIG+=release > /dev/null
 make -j32 > /dev/null
 echo "[OK]"
 
 
 echo -n "Packaging.............."
-mkdir release/zec-qt-wallet-v$APP_VERSION  
-cp release/zec-qt-wallet.exe release/zec-qt-wallet-v$APP_VERSION 
-cp $ZCASH_DIR/artifacts/zcashd.exe release/zec-qt-wallet-v$APP_VERSION > /dev/null
-cp $ZCASH_DIR/artifacts/zcash-cli.exe release/zec-qt-wallet-v$APP_VERSION > /dev/null
-cp README.md release/zec-qt-wallet-v$APP_VERSION 
-cp LICENSE release/zec-qt-wallet-v$APP_VERSION 
-cd release && zip -r Windows-zec-qt-wallet-v$APP_VERSION.zip zec-qt-wallet-v$APP_VERSION/ > /dev/null
+mkdir release/mrc-qt-wallet-v$APP_VERSION  
+cp release/zec-qt-wallet.exe release/mrc-qt-wallet-v$APP_VERSION 
+cp $ZCASH_DIR/artifacts/moonroomcashd.exe release/mrc-qt-wallet-v$APP_VERSION > /dev/null
+cp $ZCASH_DIR/artifacts/moonroomcash-cli.exe release/mrc-qt-wallet-v$APP_VERSION > /dev/null
+cp README.md release/mrc-qt-wallet-v$APP_VERSION 
+cp LICENSE release/mrc-qt-wallet-v$APP_VERSION 
+cd release && zip -r Windows-mrc-qt-wallet-v$APP_VERSION.zip mrc-qt-wallet-v$APP_VERSION/ > /dev/null
 cd ..
 mkdir artifacts >/dev/null 2>&1
-cp release/Windows-zec-qt-wallet-v$APP_VERSION.zip ./artifacts/
+cp release/Windows-mrc-qt-wallet-v$APP_VERSION.zip ./artifacts/
 echo "[OK]"
 
-if [ -f artifacts/Windows-zec-qt-wallet-v$APP_VERSION.zip ] ; then
+if [ -f artifacts/Windows-mrc-qt-wallet-v$APP_VERSION.zip ] ; then
     echo -n "Package contents......."
-    if unzip -l "artifacts/Windows-zec-qt-wallet-v$APP_VERSION.zip" | wc -l | grep -q "11"; then 
+    if unzip -l "artifacts/Windows-mrc-qt-wallet-v$APP_VERSION.zip" | wc -l | grep -q "11"; then 
         echo "[OK]"
     else
         echo "[ERROR]"

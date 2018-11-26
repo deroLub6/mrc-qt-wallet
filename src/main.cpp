@@ -38,11 +38,11 @@ int main(int argc, char *argv[])
         Settings::getInstance()->setUseEmbedded(true);
     }
 
-    QCoreApplication::setOrganizationName("zec-qt-wallet-org");
-    QCoreApplication::setApplicationName("zec-qt-wallet");
+    QCoreApplication::setOrganizationName("mrc-qt-wallet-org");
+    QCoreApplication::setApplicationName("mrc-qt-wallet");
 
     MainWindow w;
-    w.setWindowTitle("zec-qt-wallet v" + QString(APP_VERSION));
+    w.setWindowTitle("mrc-qt-wallet v" + QString(APP_VERSION));
     w.show();
     
     return QApplication::exec();

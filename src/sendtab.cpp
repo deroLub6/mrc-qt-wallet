@@ -125,7 +125,7 @@ void MainWindow::setDefaultPayFrom() {
     if (maxZ >= 0) {
         ui->inputsCombo->setCurrentIndex(maxZ);                
     } else {
-        auto maxT = findMax("t");
+        auto maxT = findMax("M");
         maxT  = maxT >= 0 ? maxT : 0;
         ui->inputsCombo->setCurrentIndex(maxT);
     }
@@ -134,7 +134,7 @@ void MainWindow::setDefaultPayFrom() {
 void MainWindow::inputComboTextChanged(int index) {
     auto addr   = ui->inputsCombo->itemText(index);
     auto bal    = rpc->getAllBalances()->value(addr);
-    auto balFmt = Settings::getZECDisplayFormat(bal);
+    auto balFmt = Settings::getMRCDisplayFormat(bal);
 
     ui->sendAddressBalance->setText(balFmt);
     ui->sendAddressBalanceUSD->setText(Settings::getUSDFormat(bal));
@@ -397,7 +397,7 @@ Tx MainWindow::createTxFromSendPage() {
 
     if (Settings::getInstance()->getAutoShield() && sendChangeToSapling) {
         auto saplingAddr = std::find_if(rpc->getAllZAddresses()->begin(), rpc->getAllZAddresses()->end(), [=](auto i) -> bool { 
-            // We're finding a sapling address that is not one of the To addresses, because zcash doesn't allow duplicated addresses
+            // We're finding a sapling address that is not one of the To addresses, because moonroomcash doesn't allow duplicated addresses
             bool isSapling = Settings::getInstance()->isSaplingAddress(i); 
             if (!isSapling) return false;
 
@@ -471,10 +471,10 @@ bool MainWindow::confirmTx(Tx tx) {
             Addr->setText(fnSplitAddressForWrap(toAddr.addr));
             confirm.gridLayout->addWidget(Addr, row, 0, 1, 1);
 
-            // Amount (ZEC)
+            // Amount (MRC)
             auto Amt = new QLabel(confirm.sendToAddrs);
             Amt->setObjectName(QString("Amt") % QString::number(i + 1));
-            Amt->setText(Settings::getZECDisplayFormat(toAddr.amount));
+            Amt->setText(Settings::getMRCDisplayFormat(toAddr.amount));
             Amt->setAlignment(Qt::AlignRight | Qt::AlignTrailing | Qt::AlignVCenter);
             confirm.gridLayout->addWidget(Amt, row, 1, 1, 1);
 
@@ -523,7 +523,7 @@ bool MainWindow::confirmTx(Tx tx) {
         minerFee->setObjectName(QStringLiteral("minerFee"));
         minerFee->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
         confirm.gridLayout->addWidget(minerFee, row, 1, 1, 1);
-        minerFee->setText(Settings::getZECDisplayFormat(tx.fee));
+        minerFee->setText(Settings::getMRCDisplayFormat(tx.fee));
 
         auto minerFeeUSD = new QLabel(confirm.sendToAddrs);
         QSizePolicy sizePolicy1(QSizePolicy::Minimum, QSizePolicy::Preferred);

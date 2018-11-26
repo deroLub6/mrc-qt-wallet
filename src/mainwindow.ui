@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>zec-qt-wallet</string>
+   <string>mrc-qt-wallet</string>
   </property>
   <property name="windowIcon">
    <iconset resource="../application.qrc">
@@ -831,7 +831,7 @@
       </widget>
       <widget class="QWidget" name="tab_5">
        <attribute name="title">
-        <string>zcashd</string>
+        <string>moonroomcashd</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_7">
         <item>

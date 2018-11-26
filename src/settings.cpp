@@ -40,7 +40,7 @@ void Settings::saveSettings(const QString& host, const QString& port, const QStr
     init();
 }
 
-void Settings::setUsingZcashConf(QString confLocation) {
+void Settings::setUsingMoonroomcashConf(QString confLocation) {
     if (!confLocation.isEmpty())
         _confLocation = confLocation;
 }
@@ -67,7 +67,7 @@ bool Settings::isZAddress(QString addr) {
 }
 
 bool Settings::isTAddress(QString addr) {
-    return addr.startsWith("t");
+    return addr.startsWith("M");
 }
 
 bool Settings::isSyncing() {
@@ -91,8 +91,8 @@ bool Settings::isSaplingActive() {
            (!isTestnet() && getBlockNumber() > 419200);
 }
 
-double Settings::getZECPrice() { 
-    return zecPrice; 
+double Settings::getMRCPrice() { 
+    return mrcPrice; 
 }
 
 bool Settings::getAutoShield() {
@@ -135,8 +135,8 @@ void Settings::saveRestore(QDialog* d) {
 }
 
 QString Settings::getUSDFormat(double bal) {
-    if (!Settings::getInstance()->isTestnet() && Settings::getInstance()->getZECPrice() > 0) 
-        return "$" + QLocale(QLocale::English).toString(bal * Settings::getInstance()->getZECPrice(), 'f', 2);
+    if (!Settings::getInstance()->isTestnet() && Settings::getInstance()->getMRCPrice() > 0) 
+        return "$" + QLocale(QLocale::English).toString(bal * Settings::getInstance()->getMRCPrice(), 'f', 2);
     else 
         return QString();
 }
@@ -150,26 +150,26 @@ QString Settings::getDecimalString(double amt) {
     return f;
 }
 
-QString Settings::getZECDisplayFormat(double bal) {
+QString Settings::getMRCDisplayFormat(double bal) {
     // This is idiotic. Why doesn't QString have a way to do this?
     return getDecimalString(bal) % " " % Settings::getTokenName();
 }
 
-QString Settings::getZECUSDDisplayFormat(double bal) {
+QString Settings::getMRCUSDDisplayFormat(double bal) {
     auto usdFormat = getUSDFormat(bal);
     if (!usdFormat.isEmpty())
-        return getZECDisplayFormat(bal) % " (" % getUSDFormat(bal) % ")";
+        return getMRCDisplayFormat(bal) % " (" % getUSDFormat(bal) % ")";
     else
-        return getZECDisplayFormat(bal);
+        return getMRCDisplayFormat(bal);
 }
 
 const QString Settings::txidStatusMessage = QString("Tx submitted (right click to copy) txid:");
 
 QString Settings::getTokenName() {
     if (Settings::getInstance()->isTestnet()) {
-        return "TAZ";
+        return "TMRC";
     } else {
-        return "ZEC";
+        return "MRC";
     }
 }
 
@@ -210,7 +210,7 @@ bool Settings::isValidAddress(QString addr) {
     QRegExp zcexp("^z[a-z0-9]{94}$",  Qt::CaseInsensitive);
     QRegExp zsexp("^z[a-z0-9]{77}$",  Qt::CaseInsensitive);
     QRegExp ztsexp("^ztestsapling[a-z0-9]{76}", Qt::CaseInsensitive);
-    QRegExp texp("^t[a-z0-9]{34}$", Qt::CaseInsensitive);
+    QRegExp texp("^M[a-z0-9]{34}$", Qt::CaseInsensitive);
 
     return  zcexp.exactMatch(addr)  || texp.exactMatch(addr) || 
             ztsexp.exactMatch(addr) || zsexp.exactMatch(addr);

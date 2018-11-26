@@ -46,7 +46,7 @@ public:
     QLabel*             statusLabel;
     QLabel*             statusIcon;
     QLabel*             loadingLabel;
-    QWidget*            zcashdtab;
+    QWidget*            moonroomcashdtab;
 
     Logger*      logger;
 private:    
@@ -56,7 +56,7 @@ private:
     void setupTransactionsTab();
     void setupRecieveTab();
     void setupBalancesTab();
-    void setupZcashdTab();
+    void setupMoonroomcashdTab();
 
     void setupTurnstileDialog();
     void setupSettingsModal();

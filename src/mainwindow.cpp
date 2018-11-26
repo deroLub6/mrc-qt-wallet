@@ -23,7 +23,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    logger = new Logger(this, QDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)).filePath("zec-qt-wallet.log"));
+    logger = new Logger(this, QDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)).filePath("mrc-qt-wallet.log"));
 
     // Status Bar
     setupStatusBar();
@@ -73,8 +73,8 @@ MainWindow::MainWindow(QWidget *parent) :
     // Initialize to the balances tab
     ui->tabWidget->setCurrentIndex(0);
 
-    // The zcashd tab is hidden by default, and only later added in if the embedded zcashd is started
-    zcashdtab = ui->tabWidget->widget(4);
+    // The moonroomcashd tab is hidden by default, and only later added in if the embedded moonroomcashd is started
+    moonroomcashdtab = ui->tabWidget->widget(4);
     ui->tabWidget->removeTab(4);
 
     setupSendTab();
@@ -82,7 +82,7 @@ MainWindow::MainWindow(QWidget *parent) :
     setupRecieveTab();
     setupBalancesTab();
     setupTurnstileDialog();
-    setupZcashdTab();
+    setupMoonroomcashdTab();
 
     rpc = new RPC(this);
 
@@ -106,7 +106,7 @@ void MainWindow::closeEvent(QCloseEvent* event) {
     s.setValue("tratablegeometry", ui->transactionsTable->horizontalHeader()->saveState());
 
     // Let the RPC know to shut down any running service.
-    rpc->shutdownZcashd();
+    rpc->shutdownMoonroomcashd();
 
     // Bubble up
     QMainWindow::closeEvent(event);
@@ -220,7 +220,7 @@ void MainWindow::turnstileDoMigration(QString fromAddr) {
         return bal;
     };
 
-    turnstile.fromBalance->setText(Settings::getZECUSDDisplayFormat(fnGetAllSproutBalance()));
+    turnstile.fromBalance->setText(Settings::getMRCUSDDisplayFormat(fnGetAllSproutBalance()));
     for (auto addr : *rpc->getAllZAddresses()) {
         auto bal = rpc->getAllBalances()->value(addr);
         if (Settings::getInstance()->isSaplingAddress(addr)) {
@@ -238,12 +238,12 @@ void MainWindow::turnstileDoMigration(QString fromAddr) {
             bal = rpc->getAllBalances()->value(addr);
         }
 
-        auto balTxt = Settings::getZECUSDDisplayFormat(bal);
+        auto balTxt = Settings::getMRCUSDDisplayFormat(bal);
         
         if (bal < Turnstile::minMigrationAmount) {
             turnstile.fromBalance->setStyleSheet("color: red;");
             turnstile.fromBalance->setText(balTxt % " [You need at least " 
-                        % Settings::getZECDisplayFormat(Turnstile::minMigrationAmount)
+                        % Settings::getMRCDisplayFormat(Turnstile::minMigrationAmount)
                         % " for automatic migration]");
             turnstile.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
         } else {
@@ -271,7 +271,7 @@ void MainWindow::turnstileDoMigration(QString fromAddr) {
     QObject::connect(turnstile.privLevel, QOverload<int>::of(&QComboBox::currentIndexChanged), [=] (auto idx) {
         // Update the fees
         turnstile.minerFee->setText(
-            Settings::getZECUSDDisplayFormat(std::get<0>(privOptions[idx]) * Settings::getMinerFee()));
+            Settings::getMRCUSDDisplayFormat(std::get<0>(privOptions[idx]) * Settings::getMinerFee()));
     });
 
     for (auto i : privOptions) {
@@ -337,7 +337,7 @@ void MainWindow::setupStatusBar() {
                     url = "https://explorer.testnet.z.cash/tx/" + txid;
                 }
                 else {
-                    url = "https://explorer.zcha.in/transactions/" + txid;
+                    url = "http://159.65.5.103:3001/transactions/" + txid;
                 }
                 QDesktopServices::openUrl(QUrl(url));
             });
@@ -373,7 +373,7 @@ void MainWindow::setupSettingsModal() {
         // Setup clear button
         QObject::connect(settings.btnClearSaved, &QCheckBox::clicked, [=]() {
             if (QMessageBox::warning(this, "Clear saved history?",
-                "Shielded z-Address transactions are stored locally in your wallet, outside zcashd. You may delete this saved information safely any time for your privacy.\nDo you want to delete the saved shielded transactions now?",
+                "Shielded z-Address transactions are stored locally in your wallet, outside moonroomcashd. You may delete this saved information safely any time for your privacy.\nDo you want to delete the saved shielded transactions now?",
                 QMessageBox::Yes, QMessageBox::Cancel)) {
                     SentTxStore::deleteHistory();
                     // Reload after the clear button so existing txs disappear
@@ -394,10 +394,10 @@ void MainWindow::setupSettingsModal() {
         QIntValidator validator(0, 65535);
         settings.port->setValidator(&validator);
 
-        // If values are coming from zcash.conf, then disable all the fields
-        auto zcashConfLocation = Settings::getInstance()->getZcashdConfLocation();
-        if (!zcashConfLocation.isEmpty()) {
-            settings.confMsg->setText("Settings are being read from \n" + zcashConfLocation);
+        // If values are coming from moonroomcash.conf, then disable all the fields
+        auto moonroomcashConfLocation = Settings::getInstance()->getMoonroomcashdConfLocation();
+        if (!moonroomcashConfLocation.isEmpty()) {
+            settings.confMsg->setText("Settings are being read from \n" + moonroomcashConfLocation);
             settings.hostname->setEnabled(false);
             settings.port->setEnabled(false);
             settings.rpcuser->setEnabled(false);
@@ -411,7 +411,7 @@ void MainWindow::setupSettingsModal() {
             settings.rpcuser->setText(conf.rpcuser);
             settings.rpcpassword->setText(conf.rpcpassword);
 
-            settings.confMsg->setText("No local zcash.conf found. Please configure connection manually.");
+            settings.confMsg->setText("No local moonroomcash.conf found. Please configure connection manually.");
             settings.hostname->setEnabled(true);
             settings.port->setEnabled(true);
             settings.rpcuser->setEnabled(true);
@@ -432,7 +432,7 @@ void MainWindow::setupSettingsModal() {
             // Auto shield
             Settings::getInstance()->setAutoShield(settings.chkAutoShield->isChecked());
 
-            if (zcashConfLocation.isEmpty()) {
+            if (moonroomcashConfLocation.isEmpty()) {
                 // Save settings
                 Settings::getInstance()->saveSettings(
                     settings.hostname->text(),
@@ -468,9 +468,9 @@ void MainWindow::donate() {
                             Settings::getInstance()->isSaplingAddress(ui->inputsCombo->currentText())));
     ui->Address1->setCursorPosition(0);
     ui->Amount1->setText("0.01");
-    ui->MemoTxt1->setText(tr("Thanks for supporting zec-qt-wallet!"));
+    ui->MemoTxt1->setText(tr("Thanks for supporting mrc-qt-wallet!"));
 
-    ui->statusBar->showMessage(tr("Donate 0.01 ") % Settings::getTokenName() % tr(" to support zec-qt-wallet"));
+    ui->statusBar->showMessage(tr("Donate 0.01 ") % Settings::getTokenName() % tr(" to support mrc-qt-wallet"));
 
     // And switch to the send tab.
     ui->tabWidget->setCurrentIndex(1);
@@ -515,7 +515,7 @@ void MainWindow::postToZBoard() {
     QRegExpValidator v(QRegExp("^[a-zA-Z0-9_]{3,20}$"), zb.postAs);
     zb.postAs->setValidator(&v);
 
-    zb.feeAmount->setText(Settings::getZECUSDDisplayFormat(Settings::getZboardAmount() + Settings::getMinerFee()));
+    zb.feeAmount->setText(Settings::getMRCUSDDisplayFormat(Settings::getZboardAmount() + Settings::getMinerFee()));
 
     auto fnBuildNameMemo = [=]() -> QString {
         auto memo = zb.memoTxt->toPlainText().trimmed();
@@ -628,7 +628,7 @@ void MainWindow::importPrivKey() {
     pui.buttonBox->button(QDialogButtonBox::Save)->setVisible(false);
     pui.helpLbl->setText(QString() %
                         "Please paste your private keys (z-Addr or t-Addr) here, one per line.\n" %
-                        tr("The keys will be imported into your connected zcashd node"));  
+                        tr("The keys will be imported into your connected moonroomcashd node"));  
 
     if (d.exec() == QDialog::Accepted && !pui.privKeyTxt->toPlainText().trimmed().isEmpty()) {
         auto rawkeys = pui.privKeyTxt->toPlainText().trimmed().split("\n");
@@ -651,24 +651,24 @@ void MainWindow::importPrivKey() {
 
 /**
  * Backup the wallet.dat file. This is kind of a hack, since it has to read from the filesystem rather than an RPC call
- * This might fail for various reasons - Remote zcashd, non-standard locations, custom params passed to zcashd, many others
+ * This might fail for various reasons - Remote moonroomcashd, non-standard locations, custom params passed to moonroomcashd, many others
 */
 void MainWindow::backupWalletDat() {
     if (!rpc->getConnection())
         return;
 
-    QDir zcashdir(rpc->getConnection()->config->zcashDir);
-    QString backupDefaultName = "zcash-wallet-backup-" + QDateTime::currentDateTime().toString("yyyyMMdd") + ".dat";
+    QDir moonroomcashdir(rpc->getConnection()->config->moonroomcashDir);
+    QString backupDefaultName = "moonroomcash-wallet-backup-" + QDateTime::currentDateTime().toString("yyyyMMdd") + ".dat";
 
     if (Settings::getInstance()->isTestnet()) {
-        zcashdir.cd("testnet3");
+        moonroomcashdir.cd("testnet4");
         backupDefaultName = "tesetnet-" + backupDefaultName;
     }
     
-    QFile wallet(zcashdir.filePath("wallet.dat"));
+    QFile wallet(moonroomcashdir.filePath("wallet.dat"));
     if (!wallet.exists()) {
         QMessageBox::critical(this, "No wallet.dat", tr("Couldn't find the wallet.dat on this computer.\n") +
-            tr("You need to back it up from the machine zcashd is running on"), QMessageBox::Ok);
+            tr("You need to back it up from the machine moonroomcashd is running on"), QMessageBox::Ok);
         return;
     }
     
@@ -716,7 +716,7 @@ void MainWindow::exportKeys(QString addr) {
     // Wire up save button
     QObject::connect(pui.buttonBox->button(QDialogButtonBox::Save), &QPushButton::clicked, [=] () {
         QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"),
-                           allKeys ? "zcash-all-privatekeys.txt" : "zcash-privatekey.txt");
+                           allKeys ? "moonroomcash-all-privatekeys.txt" : "moonroomcash-privatekey.txt");
         QFile file(fileName);
         if (!file.open(QIODevice::WriteOnly)) {
             QMessageBox::information(this, tr("Unable to open file"), file.errorString());
@@ -828,7 +828,7 @@ void MainWindow::setupBalancesTab() {
             fnDoSendFrom(addr);
         });
 
-        if (addr.startsWith("t")) {
+        if (addr.startsWith("M")) {
             auto defaultSapling = rpc->getDefaultSaplingAddress();
             if (!defaultSapling.isEmpty()) {
                 menu.addAction(tr("Shield balance to Sapling"), [=] () {
@@ -841,7 +841,7 @@ void MainWindow::setupBalancesTab() {
                 if (Settings::getInstance()->isTestnet()) {
                     url = "https://explorer.testnet.z.cash/address/" + addr;
                 } else {
-                    url = "https://explorer.zcha.in/accounts/" + addr;
+                    url = "http://159.65.5.103:3001/address/" + addr;
                 }
                 QDesktopServices::openUrl(QUrl(url));
             });
@@ -857,7 +857,7 @@ void MainWindow::setupBalancesTab() {
     });
 }
 
-void MainWindow::setupZcashdTab() {    
+void MainWindow::setupMoonroomcashdTab() {    
     ui->zcashdlogo->setBasePixmap(QPixmap(":/img/res/zcashdlogo.gif"));
 }
 
@@ -904,7 +904,7 @@ void MainWindow::setupTransactionsTab() {
             if (Settings::getInstance()->isTestnet()) {
                 url = "https://explorer.testnet.z.cash/tx/" + txid;
             } else {
-                url = "https://explorer.zcha.in/transactions/" + txid;
+                url = "http://159.65.5.103:3001/transactions/" + txid;
             }
             QDesktopServices::openUrl(QUrl(url));
         });
@@ -986,7 +986,7 @@ void MainWindow::setupRecieveTab() {
 
             std::for_each(utxos->begin(), utxos->end(), [=](auto& utxo) {
                 auto addr = utxo.address;
-                if (addr.startsWith("t") && ui->listRecieveAddresses->findText(addr) < 0) {
+                if (addr.startsWith("M") && ui->listRecieveAddresses->findText(addr) < 0) {
                     auto bal = rpc->getAllBalances()->value(addr);
                     ui->listRecieveAddresses->addItem(addr, bal);
                 }
@@ -1078,7 +1078,7 @@ void MainWindow::setupRecieveTab() {
         }
 
         ui->rcvLabel->setText(label);
-        ui->rcvBal->setText(Settings::getZECUSDDisplayFormat(rpc->getAllBalances()->value(addr)));
+        ui->rcvBal->setText(Settings::getMRCUSDDisplayFormat(rpc->getAllBalances()->value(addr)));
         ui->txtRecieve->setPlainText(addr);       
         ui->qrcodeDisplay->setAddress(addr);
     });    

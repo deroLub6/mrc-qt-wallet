@@ -31,14 +31,14 @@ public:
     ~RPC();
 
     void setConnection(Connection* c);
-    void setEZcashd(QProcess* p);
-    const QProcess* getEZcashD() { return ezcashd; }
+    void setEMoonroomcashd(QProcess* p);
+    const QProcess* getEMoonroomcashD() { return emoonroomcashd; }
 
     void refresh(bool force = false);
 
     void refreshAddresses();    
     
-    void refreshZECPrice();
+    void refreshMRCPrice();
     void getZboardTopics(std::function<void(QMap<QString, QString>)> cb);
 
     void fillTxJsonParams(json& params, Tx tx);
@@ -59,7 +59,7 @@ public:
     void importZPrivKey(QString addr, bool rescan, const std::function<void(json)>& cb);
     void importTPrivKey(QString addr, bool rescan, const std::function<void(json)>& cb);
 
-    void shutdownZcashd();
+    void shutdownMoonroomcashd();
     void noConnection();
 
     QString getDefaultSaplingAddress();
@@ -89,7 +89,7 @@ private:
     void getZAddresses          (const std::function<void(json)>& cb);
 
     Connection*                 conn                        = nullptr;
-    QProcess*                   ezcashd                     = nullptr;
+    QProcess*                   emoonroomcashd              = nullptr;
 
     QList<UnspentOutput>*       utxos                       = nullptr;
     QMap<QString, double>*      allBalances                 = nullptr;

@@ -48,11 +48,11 @@ public:
             
     bool    isSaplingActive();
 
-    void    setUsingZcashConf(QString confLocation);
-    const   QString& getZcashdConfLocation() { return _confLocation; }
+    void    setUsingMoonroomcashConf(QString confLocation);
+    const   QString& getMoonroomcashdConfLocation() { return _confLocation; }
 
-    void    setZECPrice(double p) { zecPrice = p; }
-    double  getZECPrice();
+    void    setMRCPrice(double p) { mrcPrice = p; }
+    double  getMRCPrice();
        
     // Static stuff
     static const QString txidStatusMessage;
@@ -64,8 +64,8 @@ public:
 
     static QString getDecimalString(double amt);
     static QString getUSDFormat(double bal);
-    static QString getZECDisplayFormat(double bal);
-    static QString getZECUSDDisplayFormat(double bal);
+    static QString getMRCDisplayFormat(double bal);
+    static QString getMRCUSDDisplayFormat(double bal);
 
     static QString getTokenName();
     static QString getDonationAddr(bool sapling);
@@ -98,7 +98,7 @@ private:
     int     _blockNumber      = 0;
     bool    _useEmbedded      = false;
 
-    double zecPrice = 0.0;
+    double mrcPrice = 0.0;
 };
 
 #endif // SETTINGS_H

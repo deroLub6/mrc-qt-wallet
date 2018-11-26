@@ -7,24 +7,24 @@ fi
 if [ -z $APP_VERSION ]; then echo "APP_VERSION is not set"; exit 1; fi
 if [ -z $PREV_VERSION ]; then echo "PREV_VERSION is not set"; exit 1; fi
 
-if [ -z $ZCASH_DIR ]; then
-    echo "ZCASH_DIR is not set. Please set it to the base directory of a Moonroomcash project with built Moonroomcash binaries."
+if [ -z $MOONROOMCASH_DIR ]; then
+    echo "MOONROOMCASH_DIR is not set. Please set it to the base directory of a Moonroomcash project with built Moonroomcash binaries."
     exit 1;
 fi
 
-if [ ! -f $ZCASH_DIR/artifacts/moonroomcashd ]; then
-    echo "Couldn't find moonroomcashd in $ZCASH_DIR/artifacts/. Please build moonroomcashd."
+if [ ! -f $MOONROOMCASH_DIR/artifacts/moonroomcashd ]; then
+    echo "Couldn't find moonroomcashd in $MOONROOMCASH_DIR/artifacts/. Please build moonroomcashd."
     exit 1;
 fi
 
-if [ ! -f $ZCASH_DIR/artifacts/moonroomcash-cli ]; then
-    echo "Couldn't find moonroomcash-cli in $ZCASH_DIR/artifacts/. Please build moonroomcashd."
+if [ ! -f $MOONROOMCASH_DIR/artifacts/moonroomcash-cli ]; then
+    echo "Couldn't find moonroomcash-cli in $MOONROOMCASH_DIR/artifacts/. Please build moonroomcashd."
     exit 1;
 fi
 
 # Ensure that moonroomcashd is the right build
 echo -n "moonroomcashd version........."
-if grep -q "MagicBean" $ZCASH_DIR/artifacts/moonroomcashd && ! readelf -s $ZCASH_DIR/artifacts/moonroomcashd | grep -q "GLIBC_2\.25"; then 
+if grep -q "MagicBean" $MOONROOMCASH_DIR/artifacts/moonroomcashd && ! readelf -s $MOONROOMCASH_DIR/artifacts/moonroomcashd | grep -q "GLIBC_2\.25"; then 
     echo "[OK]"
 else
     echo "[ERROR]"
@@ -33,7 +33,7 @@ else
 fi
 
 echo -n "moonroomcashd.exe version....."
-if grep -q "MagicBean" $ZCASH_DIR/artifacts/moonroomcashd.exe; then 
+if grep -q "MagicBean" $MOONROOMCASH_DIR/artifacts/moonroomcashd.exe; then 
     echo "[OK]"
 else
     echo "[ERROR]"
@@ -72,7 +72,7 @@ echo "[OK]"
 
 # Test for Qt
 echo -n "Static link............"
-if [[ $(ldd zec-qt-wallet | grep -i "Qt") ]]; then
+if [[ $(ldd mrc-qt-wallet | grep -i "Qt") ]]; then
     echo "FOUND QT; ABORT"; 
     exit 1
 fi
@@ -80,13 +80,13 @@ echo "[OK]"
 
 
 echo -n "Packaging.............."
-mkdir bin/zec-qt-wallet-v$APP_VERSION > /dev/null
+mkdir bin/mrc-qt-wallet-v$APP_VERSION > /dev/null
 strip mrc-qt-wallet
-cp mrc-qt-wallet bin/zec-qt-wallet-v$APP_VERSION > /dev/null
-cp $ZCASH_DIR/artifacts/moonroomcashd bin/zec-qt-wallet-v$APP_VERSION > /dev/null
-cp $ZCASH_DIR/artifacts/moonroomcash-cli bin/zec-qt-wallet-v$APP_VERSION > /dev/null
+cp mrc-qt-wallet bin/mrc-qt-wallet-v$APP_VERSION > /dev/null
+cp $MOONROOMCASH_DIR/artifacts/moonroomcashd bin/mrc-qt-wallet-v$APP_VERSION > /dev/null
+cp $MOONROOMCASH_DIR/artifacts/moonroomcash-cli bin/mrc-qt-wallet-v$APP_VERSION > /dev/null
 cp README.md bin/mrc-qt-wallet-v$APP_VERSION > /dev/null
-cp LICENSE bin/zec-qt-wallet-v$APP_VERSION > /dev/null
+cp LICENSE bin/mrc-qt-wallet-v$APP_VERSION > /dev/null
 cd bin && tar cvf linux-mrc-qt-wallet-v$APP_VERSION.tar.gz mrc-qt-wallet-v$APP_VERSION/ > /dev/null
 cd .. 
 mkdir artifacts >/dev/null 2>&1
@@ -117,7 +117,7 @@ mkdir -p $debdir/usr/local/bin
 cat src/scripts/control | sed "s/RELEASE_VERSION/$APP_VERSION/g" > $debdir/DEBIAN/control
 
 cp mrc-qt-wallet $debdir/usr/local/bin/
-cp $ZCASH_DIR/artifacts/moonroomcashd $debdir/usr/local/bin/zqw-zcashd
+cp $MOONROOMCASH_DIR/artifacts/moonroomcashd $debdir/usr/local/bin/zqw-moonroomcashd
 
 mkdir -p $debdir/usr/share/pixmaps/
 cp res/mrc-qt-wallet.xpm $debdir/usr/share/pixmaps/
@@ -140,14 +140,14 @@ if [ -z $MXE_PATH ]; then
     exit 0; 
 fi
 
-if [ ! -f $ZCASH_DIR/artifacts/moonroomcashd.exe ]; then
-    echo "Couldn't find moonroomcashd.exe in $ZCASH_DIR/artifacts/. Please build moonroomcashd.exe"
+if [ ! -f $MOONROOMCASH_DIR/artifacts/moonroomcashd.exe ]; then
+    echo "Couldn't find moonroomcashd.exe in $MOONROOMCASH_DIR/artifacts/. Please build moonroomcashd.exe"
     exit 1;
 fi
 
 
-if [ ! -f $ZCASH_DIR/artifacts/moonroomcash-cli.exe ]; then
-    echo "Couldn't find moonroomcash-cli.exe in $ZCASH_DIR/artifacts/. Please build moonroomcashd.exe"
+if [ ! -f $MOONROOMCASH_DIR/artifacts/moonroomcash-cli.exe ]; then
+    echo "Couldn't find moonroomcash-cli.exe in $MOONROOMCASH_DIR/artifacts/. Please build moonroomcashd.exe"
     exit 1;
 fi
 
@@ -170,9 +170,9 @@ echo "[OK]"
 
 echo -n "Packaging.............."
 mkdir release/mrc-qt-wallet-v$APP_VERSION  
-cp release/zec-qt-wallet.exe release/mrc-qt-wallet-v$APP_VERSION 
-cp $ZCASH_DIR/artifacts/moonroomcashd.exe release/mrc-qt-wallet-v$APP_VERSION > /dev/null
-cp $ZCASH_DIR/artifacts/moonroomcash-cli.exe release/mrc-qt-wallet-v$APP_VERSION > /dev/null
+cp release/mrc-qt-wallet.exe release/mrc-qt-wallet-v$APP_VERSION 
+cp $MOONROOMCASH_DIR/artifacts/moonroomcashd.exe release/mrc-qt-wallet-v$APP_VERSION > /dev/null
+cp $MOONROOMCASH_DIR/artifacts/moonroomcash-cli.exe release/mrc-qt-wallet-v$APP_VERSION > /dev/null
 cp README.md release/mrc-qt-wallet-v$APP_VERSION 
 cp LICENSE release/mrc-qt-wallet-v$APP_VERSION 
 cd release && zip -r Windows-mrc-qt-wallet-v$APP_VERSION.zip mrc-qt-wallet-v$APP_VERSION/ > /dev/null

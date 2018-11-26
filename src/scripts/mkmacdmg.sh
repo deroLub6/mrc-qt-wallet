@@ -5,8 +5,8 @@ if [ -z $QT_PATH ]; then
     exit 1; 
 fi
 
-if [ -z $ZCASH_DIR ]; then
-    echo "ZCASH_DIR is not set. Please set it to the base directory of a compiled moonroomcashd";
+if [ -z $MOONROOMCASH_DIR ]; then
+    echo "MOONROOMCASH_DIR is not set. Please set it to the base directory of a compiled moonroomcashd";
     exit 1;
 fi
 
@@ -15,8 +15,8 @@ if [ -z $APP_VERSION ]; then
     exit 1;
 fi
 
-if [ ! -f $ZCASH_DIR/src/moonroomcashd ]; then
-    echo "Could not find compiled moonroomcashd in $ZCASH_DIR/src/.";
+if [ ! -f $MOONROOMCASH_DIR/src/moonroomcashd ]; then
+    echo "Could not find compiled moonroomcashd in $MOONROOMCASH_DIR/src/.";
     exit 1;
 fi
 
@@ -45,8 +45,8 @@ echo -n "Deploying.............."
 mkdir artifacts >/dev/null 2>&1
 rm -f artifcats/mrc-qt-wallet.dmg >/dev/null 2>&1
 rm -f artifacts/rw* >/dev/null 2>&1
-cp $ZCASH_DIR/src/moonroomcashd mrc-qt-wallet.app/Contents/MacOS/
-cp $ZCASH_DIR/src/moonroomcash-cli mrc-qt-wallet.app/Contents/MacOS/
+cp $MOONROOMCASH_DIR/src/moonroomcashd mrc-qt-wallet.app/Contents/MacOS/
+cp $MOONROOMCASH_DIR/src/moonroomcash-cli mrc-qt-wallet.app/Contents/MacOS/
 $QT_PATH/bin/macdeployqt mrc-qt-wallet.app 
 echo "[OK]"
 
@@ -61,7 +61,7 @@ create-dmg --volname "mrc-qt-wallet-v$APP_VERSION" --volicon "res/logo.icns" --w
 
 #cp -r mrc-qt-wallet.app bin/dmgbuild/
 
-#appdmg --quiet bin/dmgbuild/appdmg.json artifacts/macOS-zec-qt-wallet-v$APP_VERSION.dmg >/dev/null
+#appdmg --quiet bin/dmgbuild/appdmg.json artifacts/macOS-mrc-qt-wallet-v$APP_VERSION.dmg >/dev/null
 if [ ! -f artifacts/macOS-mrc-qt-wallet-v$APP_VERSION.dmg ]; then
     echo "[ERROR]"
     exit 1

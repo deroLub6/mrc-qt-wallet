@@ -7,11 +7,11 @@ param (
 )
 
 Write-Host "[Initializing]"
-Remove-Item -Force -ErrorAction Ignore ./artifacts/linux-zec-qt-wallet-v$version.tar.gz
-Remove-Item -Force -ErrorAction Ignore ./artifacts/Windows-zec-qt-wallet-v$version.zip
-Remove-Item -Force -ErrorAction Ignore ./artifacts/zec-qt-wallet-v$version.deb
-Remove-Item -Force -ErrorAction Ignore ./artifacts/zec-qt-wallet-v$version.msi
-Remove-Item -Force -ErrorAction Ignore ./artifacts/macOS-zec-qt-wallet-v$version.dmg
+Remove-Item -Force -ErrorAction Ignore ./artifacts/linux-mrc-qt-wallet-v$version.tar.gz
+Remove-Item -Force -ErrorAction Ignore ./artifacts/Windows-mrc-qt-wallet-v$version.zip
+Remove-Item -Force -ErrorAction Ignore ./artifacts/mrc-qt-wallet-v$version.deb
+Remove-Item -Force -ErrorAction Ignore ./artifacts/mrc-qt-wallet-v$version.msi
+Remove-Item -Force -ErrorAction Ignore ./artifacts/macOS-mrc-qt-wallet-v$version.dmg
 
 Remove-Item -Recurse -Force -ErrorAction Ignore ./bin
 Remove-Item -Recurse -Force -ErrorAction Ignore ./debug
@@ -26,11 +26,11 @@ Write-Host ""
 #Write-Host -NoNewline "Copying files.........."
 #ssh $macserver "rm -rf /tmp/zqwbuild"
 #ssh $macserver "mkdir /tmp/zqwbuild"
-#scp -r src/ res/ ./zec-qt-wallet.pro ./application.qrc ./LICENSE ./README.md ${macserver}:/tmp/zqwbuild/ | Out-Null
+#scp -r src/ res/ ./mrc-qt-wallet.pro ./application.qrc ./LICENSE ./README.md ${macserver}:/tmp/zqwbuild/ | Out-Null
 #Write-Host "[OK]"
 #ssh $macserver "cd /tmp/zqwbuild && /usr/local/bin/dos2unix -q src/scripts/mkmacdmg.sh"
 #ssh $macserver "cd /tmp/zqwbuild && /usr/local/bin/dos2unix -q src/version.h"
-#ssh $macserver "cd /tmp/zqwbuild && APP_VERSION=$version QT_PATH=~/Qt/5.11.2/clang_64/ ZCASH_DIR=~/github/zcash bash src/scripts/mkmacdmg.sh"
+#ssh $macserver "cd /tmp/zqwbuild && APP_VERSION=$version QT_PATH=~/Qt/5.11.2/clang_64/ MoonroomcashCASH_DIR=~/github/moonroomcash bash src/scripts/mkmacdmg.sh"
 #if (! $?) {
 #    Write-Output "[Error]"
 #    exit 1;
@@ -44,7 +44,7 @@ Write-Host "[Building Linux + Windows]"
 Write-Host -NoNewline "Copying files.........."
 ssh $server "rm -rf /tmp/zqwbuild"
 ssh $server "mkdir /tmp/zqwbuild"
-scp -r src/ res/ ./zec-qt-wallet.pro ./application.qrc ./LICENSE ./README.md ${server}:/tmp/zqwbuild/ | Out-Null
+scp -r src/ res/ ./mrc-qt-wallet.pro ./application.qrc ./LICENSE ./README.md ${server}:/tmp/zqwbuild/ | Out-Null
 ssh $server "dos2unix -q /tmp/zqwbuild/src/scripts/mkrelease.sh" | Out-Null
 ssh $server "dos2unix -q /tmp/zqwbuild/src/version.h"
 Write-Host "[OK]"
@@ -69,11 +69,11 @@ Write-Host "[OK]"
 
 # Finally, test to make sure all files exist
 Write-Host -NoNewline "Checking Build........."
-if (! (Test-Path ./artifacts/linux-zec-qt-wallet-v$version.tar.gz) -or
-    ! (Test-Path ./artifacts/Windows-zec-qt-wallet-v$version.zip) -or
-    ! (Test-Path ./artifacts/zec-qt-wallet-v$version.deb) -or
-#    ! (Test-Path ./artifacts/macOS-zec-qt-wallet-v$version.dmg) -or 
-    ! (Test-Path ./artifacts/zec-qt-wallet-v$version.msi) ) {
+if (! (Test-Path ./artifacts/linux-mrc-qt-wallet-v$version.tar.gz) -or
+    ! (Test-Path ./artifacts/Windows-mrc-qt-wallet-v$version.zip) -or
+    ! (Test-Path ./artifacts/mrc-qt-wallet-v$version.deb) -or
+#    ! (Test-Path ./artifacts/macOS-mrc-qt-wallet-v$version.dmg) -or 
+    ! (Test-Path ./artifacts/mrc-qt-wallet-v$version.msi) ) {
         Write-Host "[Error]"
         exit 1;
     }

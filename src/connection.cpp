@@ -280,7 +280,7 @@ bool ConnectionLoader::startEmbeddedMoonroomcashd() {
     // Finally, start moonroomcashd    
     QDir appPath(QCoreApplication::applicationDirPath());
 #ifdef Q_OS_LINUX
-    auto moonroomcashdProgram = appPath.absoluteFilePath("zqw-moonroomcashd");
+    auto moonroomcashdProgram = appPath.absoluteFilePath("moonroomcashd");
     if (!QFile(moonroomcashdProgram).exists()) {
         moonroomcashdProgram = appPath.absoluteFilePath("moonroomcashd");
     }

@@ -51,7 +51,7 @@ public:
     const QList<UnspentOutput>*       getUTXOs()          { return utxos; }
     const QMap<QString, double>*      getAllBalances()    { return allBalances; }
 
-    void newZaddr(bool sapling, const std::function<void(json)>& cb);
+    void newZaddr(const std::function<void(json)>& cb);
     void newTaddr(const std::function<void(json)>& cb);
 
     void getZPrivKey(QString addr, const std::function<void(json)>& cb);

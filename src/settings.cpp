@@ -54,9 +54,11 @@ void Settings::setTestnet(bool isTestnet) {
 }
 
 bool Settings::isSaplingAddress(QString addr) {
-    return ( isTestnet() && addr.startsWith("ztestsapling")) ||
-           (!isTestnet() && addr.startsWith("zs"));
+   /// return ( isTestnet() && addr.startsWith("ztestsapling")) ||
+         //////  (!isTestnet() && addr.startsWith("zs"));   
+   return false;
 }
+
 
 bool Settings::isSproutAddress(QString addr) {
     return isZAddress(addr) && !isSaplingAddress(addr);
